@@ -99,12 +99,15 @@ const MainPage = () => {
         disconnect={mqttDisconnect}
         connectBtn={connectStatus}
       />
-      <Chat
-        setUser={setUser}
-        setPayload={setPayload}
-        sendPrivateMessage={sendPrivateMessage}
-        sendPublicMessage={sendPublicMessage}
-      />
+      {
+        connectStatus === 'Connected' && 
+          <Chat
+            user={user}
+            payload={payload}
+            sendPrivateMessage={sendPrivateMessage}
+            sendPublicMessage={sendPublicMessage}
+          />
+      }
     </>
   )
 }

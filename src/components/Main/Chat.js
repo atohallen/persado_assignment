@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Card, List, Row, Col } from 'antd';
+import { Card, List, Row, Col, Button, Input } from 'antd';
 
-const Receiver = ({ message }) => {
-  const [messages, setMessages] = useState([])
-  const [users, setUsers] = useState([]);
+const Receiver = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
+  const [ messages, setMessages ] = useState([])
+  const [ users, setUsers ] = useState(['--all--', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff']);
+  const [ selectedUser, setSelectedUser ] = useState('--all--');
+  const [ message, setMessage ] = useState('');
 
   const renderMessages = (item) => {
     const title = '';
@@ -18,27 +20,40 @@ const Receiver = ({ message }) => {
     )
   }
 
-  const renderUsers = (user) => {
+  const renderUsers = (user) => (
+    <List.Item
+      style={user === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
+      onClick={() => setSelectedUser(user)}
+    >
+      <List.Item.Meta
+        title={user}
+      />
+    </List.Item>
+  )
 
-  }
+  useEffect(() => {
+    if (user) {
+      setUsers([...users, user])
+    }
+  }, [user])
 
-  // useEffect(() => {
-  //   if (message.username) {
-  //     setMessages(messages => [...messages, message])
-  //   }
-  // }, [message])
-
+  useEffect(() => {
+    if (payload.message) {
+      setMessages([...messages, payload]);
+    }
+  }, [payload]);
 
   return (
     <Card title="Chat Page">
-      <Row gutter={16} >
+      <Row gutter={[16, 16]} >
         <Col span={16}>
           <List
             size="small"
             bordered
             dataSource={messages}
             renderItem={renderMessages}
-          />
+            style={{ height: '250px', overflowY: 'auto' }}
+        />
         </Col>
         <Col span={8}>
           <List
@@ -46,7 +61,22 @@ const Receiver = ({ message }) => {
             bordered
             dataSource={users}
             renderItem={renderUsers}
+            style={{ height: '250px', overflowY: 'auto' }}
           />
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col span={16}>
+          <Input value={message} onChange={(e) => setMessage(e.target.value)} />
+        </Col>
+        <Col span={8}>
+          <Button
+            onClick={selectedUser === '--all--' ? sendPublicMessage : sendPrivateMessage}
+            disabled={message === ''}
+            block
+          >
+            {selectedUser === '--all--' ? 'Send to All' : `Send to ${selectedUser}`}
+          </Button>
         </Col>
       </Row>
     </Card>
