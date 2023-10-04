@@ -12,7 +12,7 @@ const Connection = ({ connect, disconnect, connectBtn }) => {
   const [ isModify, setIsModify ] = useState(false);
 
   const handleConnect = () => {
-    const { host, clientId, port } = options;
+    const { host, clientId, port, username } = options;
     const url = `ws://${host}/mqtt`;
     const _options = {
       port,
@@ -21,7 +21,7 @@ const Connection = ({ connect, disconnect, connectBtn }) => {
       reconnectPeriod: 1000, // ms
       connectTimeout: 30 * 1000, // ms
     };
-    connect(url, _options)
+    connect(url, _options, username)
   }
 
   const handleDisconnect = () => {
@@ -58,25 +58,25 @@ const Connection = ({ connect, disconnect, connectBtn }) => {
               <label align="middle">Connection details</label>
             </Col>
           </Row>
-          <Row gutter={20} style={{ marginTop: '20px' }}>
-            <Col span={3} align="middle">
+          <Row gutter={20} style={{ marginTop: '20px' }} align="middle">
+            <Col span={2}>
               <label>host</label>
             </Col>
-            <Col span={7} align="middle">
+            <Col span={8}>
               <Input name="host" value={options.host} onChange={handleChange} />
             </Col>
-            <Col span={3} align="middle">
+            <Col span={2}>
               <label>clientId</label>
             </Col>
-            <Col span={7} align="middle">
+            <Col span={8}>
               <Input name="clientId" value={options.clientId} onChange={handleChange} />
             </Col>
           </Row>
           <Row gutter={20} style={{ marginTop: '20px' }}>
-            <Col span={3} align="middle">
+            <Col span={2}>
               <label>port</label>
             </Col>
-            <Col span={7} align="middle">
+            <Col span={8}>
               <Input name="port" value={options.port} onChange={handleChange} />
             </Col>
           </Row>
