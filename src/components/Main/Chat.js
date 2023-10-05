@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Row, Col, Button, Input } from 'antd';
 
-const Receiver = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
+const USER_TIMEOUT = 20000;
+
+const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert }) => {
   const [ messages, setMessages ] = useState([])
-  const [ users, setUsers ] = useState(['--all--', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff']);
+  const [ users, setUsers ] = useState([{ username: '--all--' }]);
   const [ selectedUser, setSelectedUser ] = useState('--all--');
   const [ message, setMessage ] = useState('');
 
@@ -13,32 +15,54 @@ const Receiver = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
     return (
       <List.Item>
         <List.Item.Meta
-          title={`${item.time} [${item.username}] : ${item.message}`}
-          description={item.message}
+          title={`${item.time} [${item.name}] : ${item.text}`}
         />
       </List.Item>
     )
   }
 
-  const renderUsers = (user) => (
+  const renderUsers = (_user) => (
     <List.Item
-      style={user === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
-      onClick={() => setSelectedUser(user)}
+      style={_user.username === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
+      onClick={() => setSelectedUser(_user.username)}
     >
       <List.Item.Meta
-        title={user}
+        title={_user.username}
       />
     </List.Item>
   )
 
   useEffect(() => {
-    if (user) {
-      setUsers([...users, user])
+    if (user.username) {
+      let updatedUsers = [...users];
+
+      const userIndex = updatedUsers.findIndex(({ username }) => username === user.username);
+      
+      if (userIndex >= 0) {
+        if (user.clientId === updatedUsers[userIndex].clientId) {
+          updatedUsers[userIndex] = { ...updatedUsers[userIndex], time: user.time, status: 'online' };
+        } else {
+          setAlert();
+          return;
+        }
+      } else {
+        updatedUsers.push({ ...user, status: 'online' });
+      }
+
+      const now = Date.now();
+      updatedUsers = updatedUsers.map(user => {
+        if (now - new Date(user.time).getTime() > USER_TIMEOUT && user.status === 'online' ) {
+          return { ...user, status: 'offline' };
+        }
+        return user;
+      });
+
+      setUsers(updatedUsers);
     }
   }, [user])
 
   useEffect(() => {
-    if (payload.message) {
+    if (payload.text) {
       setMessages([...messages, payload]);
     }
   }, [payload]);
@@ -71,7 +95,10 @@ const Receiver = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
         </Col>
         <Col span={8}>
           <Button
-            onClick={selectedUser === '--all--' ? sendPublicMessage : sendPrivateMessage}
+            onClick={
+              selectedUser === '--all--' ? 
+                () => sendPublicMessage(message) : () => sendPrivateMessage(selectedUser, message)
+              }
             disabled={message === ''}
             block
           >
@@ -83,4 +110,4 @@ const Receiver = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
   );
 }
 
-export default Receiver;
+export default Chat;
