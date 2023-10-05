@@ -1,36 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Row, Col, Button, Input } from 'antd';
 
-const USER_TIMEOUT = 20000;
+const USER_TIMEOUT = 30000;
 
-const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert }) => {
+const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, setAllUsers }) => {
   const [ messages, setMessages ] = useState([])
-  const [ users, setUsers ] = useState([{ username: '--all--' }]);
   const [ selectedUser, setSelectedUser ] = useState('--all--');
   const [ message, setMessage ] = useState('');
+  const [ users, setUsers ] = useState([{ username: '--all--' }]);
 
   const renderMessages = (item) => {
-    const title = '';
+    let title = `${item.time.slice(11, 16)} [${item.name}] : `;
+
+    if(!item.isPublic) {
+      title += '🔒 ';
+    }
+
+    title += item.text;
 
     return (
       <List.Item>
         <List.Item.Meta
-          title={`${item.time} [${item.name}] : ${item.text}`}
+          title={title}
         />
       </List.Item>
     )
   }
 
-  const renderUsers = (_user) => (
-    <List.Item
-      style={_user.username === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
-      onClick={() => setSelectedUser(_user.username)}
-    >
-      <List.Item.Meta
-        title={_user.username}
-      />
-    </List.Item>
-  )
+  const renderUsers = (_user) => {
+    let title = _user.username;
+    if(_user.status === 'offline')
+      title += ' 🚫';
+    return (
+      <List.Item
+        style={_user.username === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
+        onClick={() => setSelectedUser(_user.username)}
+      >
+        <List.Item.Meta
+          title={title}
+        />
+      </List.Item>
+    )
+  }
 
   useEffect(() => {
     if (user.username) {
@@ -58,6 +69,7 @@ const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert }
       });
 
       setUsers(updatedUsers);
+      setAllUsers(updatedUsers);
     }
   }, [user])
 

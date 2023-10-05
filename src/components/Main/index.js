@@ -11,8 +11,14 @@ const MainPage = () => {
   const [ user, setUser ] = useState({});
   const [ payload, setPayload ] = useState({});
 
+  const [ allUsers, setAllUsers] = useState([]);
+
   const mqttConnect = (host, mqttOption, _username) => {
     setConnectStatus('Connecting')
+    // console.log(allUsers);
+    // if(allUsers.find(({ username }) => username === _username)) {
+    //   alert('111');
+    // }
     setUsername(_username);
     setClient(mqtt.connect(host, mqttOption))
   }
@@ -33,8 +39,9 @@ const MainPage = () => {
   const sendPublicMessage = (text) => {
     client.publish('/topic/chatserver101/public', JSON.stringify({
         name: username,
-        text: text,
-        time: new Date().toISOString()
+        text,
+        time: new Date().toISOString(),
+        isPublic: true,
     }));
   };
 
@@ -42,7 +49,8 @@ const MainPage = () => {
     client.publish(`/topic/chatserver101/priv/${targetUsername}`, JSON.stringify({
         name: username,
         text: text,
-        time: new Date().toISOString()
+        time: new Date().toISOString(),
+        isPublic: false,
     }));
   };
 
@@ -89,10 +97,10 @@ const MainPage = () => {
           case '/topic/chatserver101/public':
             setPayload(payload);
             break;
+          case `/topic/chatserver101/priv/${username}`:
+            setPayload(payload);
+            break;
           default:
-            if (topic.includes('/topic/chatserver101/priv/')) {
-                console.log(`Private message from ${payload.name} at ${payload.time}: ${payload.text}`);
-            }
             break;
         }
       });
@@ -127,6 +135,7 @@ const MainPage = () => {
             sendPrivateMessage={sendPrivateMessage}
             sendPublicMessage={sendPublicMessage}
             setAlert={setAlert}
+            setAllUsers={setAllUsers}
           />
       }
     </>
