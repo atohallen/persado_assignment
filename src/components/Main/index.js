@@ -48,15 +48,10 @@ const MainPage = () => {
     }));
   };
 
-  const setAlert = () => {
-    setConnectStatus('Connect');
-    alert("The same username already exists, Please change username and reconnect!");
-  }
-
   useEffect(() => {
     if (client) {
       client.on('connect', () => {
-        setConnectStatus('Connected')
+        setConnectStatus('Disconnect')
 
         // subscribe topic
         client.subscribe('/topic/chatserver101/presence', { qos: 1 });
@@ -123,13 +118,12 @@ const MainPage = () => {
         connectBtn={connectStatus}
       />
       {
-        connectStatus === 'Connected' && 
+        connectStatus === 'Disconnect' && 
           <Chat
             user={user}
             payload={payload}
             sendPrivateMessage={sendPrivateMessage}
             sendPublicMessage={sendPublicMessage}
-            setAlert={setAlert}
           />
       }
     </>

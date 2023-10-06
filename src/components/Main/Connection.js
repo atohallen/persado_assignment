@@ -45,10 +45,19 @@ const Connection = ({ connect, disconnect, connectBtn }) => {
             <Input placeholder="Enter username" value={options.username} name="username" onChange={handleChange} />
           </Col>
           <Col span={4} align="middle">
-            <Button type="primary" onClick={handleConnect}>{connectBtn}</Button>
+            <Button
+              type={connectBtn === 'Disconnect' ? "danger" : "primary"}
+              onClick={connectBtn === 'Disconnect' ? handleDisconnect : handleConnect}
+              block>
+                {connectBtn}
+            </Button>
           </Col>
           <Col span={5} align="middle">
-            <Button onClick={() => setIsModify(!isModify)}>{!isModify ? 'Modify' : 'Hide'}</Button>
+            <Button
+              onClick={() => setIsModify(!isModify)}
+              block
+            > {!isModify ? 'Modify' : 'Hide'}
+            </Button>
           </Col>
       </Row>
       {isModify &&
