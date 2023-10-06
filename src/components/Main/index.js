@@ -11,14 +11,8 @@ const MainPage = () => {
   const [ user, setUser ] = useState({});
   const [ payload, setPayload ] = useState({});
 
-  const [ allUsers, setAllUsers] = useState([]);
-
   const mqttConnect = (host, mqttOption, _username) => {
     setConnectStatus('Connecting')
-    // console.log(allUsers);
-    // if(allUsers.find(({ username }) => username === _username)) {
-    //   alert('111');
-    // }
     setUsername(_username);
     setClient(mqtt.connect(host, mqttOption))
   }
@@ -45,8 +39,8 @@ const MainPage = () => {
     }));
   };
 
-  const sendPrivateMessage = (targetUsername, text) => {
-    client.publish(`/topic/chatserver101/priv/${targetUsername}`, JSON.stringify({
+  const sendPrivateMessage = (targetClientId, text) => {
+    client.publish(`/topic/chatserver101/priv/${targetClientId}`, JSON.stringify({
         name: username,
         text: text,
         time: new Date().toISOString(),
@@ -67,7 +61,7 @@ const MainPage = () => {
         // subscribe topic
         client.subscribe('/topic/chatserver101/presence', { qos: 1 });
         client.subscribe('/topic/chatserver101/public');
-        client.subscribe(`/topic/chatserver101/priv/${username}`);  
+        client.subscribe(`/topic/chatserver101/priv/${client.options.clientId}`);
 
         // Broadcast presence
         client.publish('/topic/chatserver101/presence', JSON.stringify({
@@ -92,12 +86,13 @@ const MainPage = () => {
         const payload = JSON.parse(message.toString());
         switch (topic) {
           case '/topic/chatserver101/presence':
-            setUser(payload);
+            if(payload.clientId !== client.options.clientId)
+              setUser(payload);
             break;
           case '/topic/chatserver101/public':
             setPayload(payload);
             break;
-          case `/topic/chatserver101/priv/${username}`:
+          case `/topic/chatserver101/priv/${client.options.clientId}`:
             setPayload(payload);
             break;
           default:
@@ -135,7 +130,6 @@ const MainPage = () => {
             sendPrivateMessage={sendPrivateMessage}
             sendPublicMessage={sendPublicMessage}
             setAlert={setAlert}
-            setAllUsers={setAllUsers}
           />
       }
     </>

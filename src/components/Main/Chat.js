@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Row, Col, Button, Input } from 'antd';
 
-const USER_TIMEOUT = 30000;
+const USER_TIMEOUT = 30000; // Expire time limit
 
-const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, setAllUsers }) => {
+const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage }) => {
   const [ messages, setMessages ] = useState([])
-  const [ selectedUser, setSelectedUser ] = useState('--all--');
+  const [ selectedUser, setSelectedUser ] = useState({ username: '--all--', clientId: 'all'});
   const [ message, setMessage ] = useState('');
-  const [ users, setUsers ] = useState([{ username: '--all--' }]);
+  const [ users, setUsers ] = useState([{ username: '--all--', clientId: 'all' }]);
 
   const renderMessages = (item) => {
     let title = `${item.time.slice(11, 16)} [${item.name}] : `;
@@ -33,8 +33,8 @@ const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, 
       title += ' 🚫';
     return (
       <List.Item
-        style={_user.username === selectedUser ? { backgroundColor: '#e6f7ff' } : {}}
-        onClick={() => setSelectedUser(_user.username)}
+        style={_user.clientId === selectedUser.clientId ? { backgroundColor: '#e6f7ff' } : {}}
+        onClick={() => setSelectedUser({ username: _user.username, clientId: _user.clientId })}
       >
         <List.Item.Meta
           title={title}
@@ -50,14 +50,25 @@ const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, 
       const userIndex = updatedUsers.findIndex(({ username }) => username === user.username);
       
       if (userIndex >= 0) {
-        if (user.clientId === updatedUsers[userIndex].clientId) {
-          updatedUsers[userIndex] = { ...updatedUsers[userIndex], time: user.time, status: 'online' };
+        if (updatedUsers.find(({ clientId }) => clientId === user.clientId)) {
+          const updateUserIndex = updatedUsers.findIndex(({ clientId }) => clientId === user.clientId);
+          updatedUsers[updateUserIndex] = { ...updatedUsers[updateUserIndex], time: user.time, status: 'online' };
         } else {
-          setAlert();
-          return;
+          updatedUsers[userIndex] = {
+            ...updatedUsers[userIndex],
+            status: 'online',
+            count: updatedUsers[userIndex].count + 1,
+          };
+
+          updatedUsers.push({
+            ...user,
+            status: 'online',
+            count: 0,
+            username: updatedUsers[userIndex].username + '-' + (updatedUsers[userIndex].count + 1),
+          });
         }
       } else {
-        updatedUsers.push({ ...user, status: 'online' });
+        updatedUsers.push({ ...user, status: 'online', count: 0 });
       }
 
       const now = Date.now();
@@ -69,7 +80,6 @@ const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, 
       });
 
       setUsers(updatedUsers);
-      setAllUsers(updatedUsers);
     }
   }, [user])
 
@@ -108,13 +118,13 @@ const Chat = ({ user, payload, sendPrivateMessage, sendPublicMessage, setAlert, 
         <Col span={8}>
           <Button
             onClick={
-              selectedUser === '--all--' ? 
-                () => sendPublicMessage(message) : () => sendPrivateMessage(selectedUser, message)
+              selectedUser.username === '--all--' ? 
+                () => sendPublicMessage(message) : () => sendPrivateMessage(selectedUser.clientId, message)
               }
             disabled={message === ''}
             block
           >
-            {selectedUser === '--all--' ? 'Send to All' : `Send to ${selectedUser}`}
+            {selectedUser.username === '--all--' ? 'Send to All' : `Send to ${selectedUser.username}`}
           </Button>
         </Col>
       </Row>
